@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <section id="content">
+        <h1>To-Do List</h1>
+        <div id="input">
+            <input type="text" id="input-task">
+            <button id="add-task-button">Add Task</button>
+        </div>
+        <ul id="task-list"></ul>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('input-task');
+            const taskButton = document.getElementById('add-task-button');
+            const list = document.getElementById('task-list');
+            const liSpacing = 3;
+            let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+
+            for (let [k, v] of Object.entries(taskList))
+                addListItem(k, v);
+
+            taskButton.addEventListener('click', () => {
+                addListItem(input.value, false);
+                input.value = '';
+            });
+            taskButton.addEventListener('mouseleave', taskButton.blur);
+            function addListItem(task, completed) {
+                let item = document.createElement('li');
+                item.innerHTML = `<input type="checkbox"><span class="task">${task}</span>` +
+                    '<button class="delete-btn">x</button>';
+
+                let checkbox = item.getElementsByTagName('input')[0];
+                let span = item.getElementsByTagName('span')[0];
+                let deleteButton = item.getElementsByClassName('delete-btn')[0];
+
+                if (completed) {
+                    checkbox.checked = true;
+                    span.style.textDecoration = 'line-through';
+                }
+                checkbox.addEventListener('click', () => {
+                    span.style.textDecoration = (checkbox.checked ? 'line-through' : 'none');
+                    storeTasks();
+                });
+                deleteButton.addEventListener('click', () => {
+                    list.removeChild(item);
+                    storeTasks();
+                    adjustList();
+                });
+                deleteButton.addEventListener('mouseleave', deleteButton.blur);
+                list.appendChild(item);
+                storeTasks()
+                adjustList();
+            }
+            function adjustList() {
+                list.style.height = `${list.children.length * liSpacing}em`;
+
+                for (let i = 0; i < list.children.length; i++)
+                    list.children[i].style.top = `calc(${i * liSpacing}em)`;
+            }
+            function storeTasks() {
+                let taskList = {};
+
+                for (let task of list.children) {
+                    let span = task.getElementsByTagName('span')[0];
+                    taskList[span.textContent] = span.style.textDecoration === 'line-through';
+                }
+                localStorage.setItem("tasks", JSON.stringify(taskList));
+            }
+        });
+    </script>
+</body>
+</html>
